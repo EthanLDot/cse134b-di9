@@ -111,7 +111,7 @@
                     await fetch(url, {
                         method: 'PUT', headers: {
                             'Content-Type': 'application/json',
-                            'X-Master-Key': process.env.FANCY_SCHMANCY_API_KEY,
+                            'X-Master-Key': context.env.FANCY_SCHMANCY_API_KEY,
                         }, body: JSON.stringify(records)
                     });
                     form.outerHTML = `<p class="deets">${newDeets}</p>`;
