@@ -112,12 +112,16 @@
                     // localStorage.setItem("my-rides", JSON.stringify(records));
 
                     // If you are doing a remote storage approach the below code will work for JSONBIN.
-                    await fetch(url, {
-                        method: 'PUT', headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': process.env.FANCY_SCHMANCY_API_KEY,
-                        }, body: JSON.stringify(records)
-                    });
+                    // But note that pasting your API key directly could lead to it being exposed in your repo.
+                    // Now client-side code cannot inject env vars for you (typically a backend/build system process) so trying to hide the API key can end up being a complicated process depending on your choice of framework or deployment.
+                    // Never mind that anyone can then access the source code on your deployed site and pull in the key directly from there anyway.
+                    // Which is to say I can only advise CRUD on remote at this point if you do not care about your JSONBIN API Key.
+                    // await fetch(url, {
+                    //     method: 'PUT', headers: {
+                    //         'Content-Type': 'application/json',
+                    //         'X-Master-Key': FANCY_SCHMANCY_API_KEY,
+                    //     }, body: JSON.stringify(records)
+                    // });
                     form.outerHTML = `<p class="deets">${newDeets}</p>`;
                 });
             }
