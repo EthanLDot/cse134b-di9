@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW5 - Custom Component Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+
+        hgroup {
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        p {
+            color: purple;
+            margin: 5px 0;
+        }
+
+        #gallery {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 1px solid black;
+            justify-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <hgroup>
+        <h1>Ethan's Personal Gallery</h1>
+        <p>All photos were really taken by Ethan himself.</p>
+    </hgroup>
+
+    <div id="gallery">
+    </div>
+
+    <script type="module" src="./my-component.js"></script>
+    <script>
+        // Alternatively https://my-json-server.typicode.com/EthanLDot/jsonservertest/cars. I personally don't like my json server due because it takes longer to reflect changes to the DB and there's a very low limit on the # of fields per entry.
+        const url = " https://api.jsonbin.io/v3/b/6923ce9ad0ea881f40fc1966";
+        let records = {}
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log("DOM Content loaded");
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const jsonData = await response.json();
+                // if you use my json server make sure the .record part is removed
+                records = jsonData.record;
+                Object.keys(records).forEach(key => {
+                    const car = records[key];
+                    window.galleryItem = document.createElement("my-ride");
+                    console.log(car);
+                    window.galleryItem.setAttribute("make", `${car.make}`);
+                    window.galleryItem.setAttribute("model", `${car.model}`);
+                    window.galleryItem.setAttribute("year", `${car.year}`);
+                    window.galleryItem.setAttribute("image-url", `${car.image_url}`);
+                    window.galleryItem.setAttribute("deets", `${car.deets}`);
+                    document.getElementById("gallery").appendChild(window.galleryItem);
+                    console.log(`${car.year} ${car.make} ${car.model}: ${car.image_url}`);
+                });
+
+            } catch (error) {
+                console.error(error.message);
+            }
+        });
+
+        document.getElementById('gallery').addEventListener('highlight', (event) => {
+            let target = event.target.closest('my-ride');
+            if (!url.includes('https://api.jsonbin.io/')) {
+                alert('STOP, I have not tested this with my-json-server')
+                return;
+            }
+            if (target) {
+                const deetsP = target.querySelector('.deets');
+                console.log(target.querySelector('form'));
+                if (target.querySelector('form')) return;
+
+                const oldText = deetsP.textContent;
+                console.log(oldText);
+
+                deetsP.outerHTML = `
+                    <form class="edit-deets-form">
+                        <textarea rows='5'>${oldText}</textarea>
+                        <button type="submit">Save</button>
+                    </form>
+                `;
+                const form = target.querySelector('.edit-deets-form');
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const newDeets = form.querySelector('textarea').value;
+                    const myKey = `${target.querySelector('.model').innerText}-${target.querySelector('.year').innerText}`.toLowerCase().replaceAll(' ', '-');
+                    records[myKey]['deets'] = newDeets;
+                    console.log(records);
+                    await fetch(url, {
+                        method: 'PUT', headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': process.env.FANCY_SCHMANCY_API_KEY,
+                        }, body: JSON.stringify(records)
+                    });
+                    form.outerHTML = `<p class="deets">${newDeets}</p>`;
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>
+
+<!-- <my-ride year="1998" make="Suzuki" model="Wagon R"
+            image-url="https://pub-940f423c24074b9ebe0052cc5f384faa.r2.dev/IMG_4746.jpg"></my-ride> -->
