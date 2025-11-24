@@ -108,10 +108,14 @@
                     const myKey = `${target.querySelector('.model').innerText}-${target.querySelector('.year').innerText}`.toLowerCase().replaceAll(' ', '-');
                     records[myKey]['deets'] = newDeets;
                     console.log(records);
+                    // If you are doing a local storage apporach for CRUD this would be all you need.
+                    // localStorage.setItem("my-rides", JSON.stringify(records));
+
+                    // If you are doing a remote storage approach the below code will work for JSONBIN.
                     await fetch(url, {
                         method: 'PUT', headers: {
                             'Content-Type': 'application/json',
-                            'X-Master-Key': context.env.FANCY_SCHMANCY_API_KEY,
+                            'X-Master-Key': process.env.FANCY_SCHMANCY_API_KEY,
                         }, body: JSON.stringify(records)
                     });
                     form.outerHTML = `<p class="deets">${newDeets}</p>`;
