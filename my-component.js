@@ -5,7 +5,6 @@ class MyRide extends HTMLElement {
     }
 
     connectedCallback() {
-        // HTML and inline style as template literals for easy modification
         const style = document.createElement('style');
         style.textContent = getMyComponentCSS();
 
@@ -15,7 +14,7 @@ class MyRide extends HTMLElement {
         const deets = this.getAttribute('deets') !== "undefined" ? this.getAttribute('deets') : 'Older picture. Nothing to say here!';
         const imageUrl = this.getAttribute('image-url') || '';
 
-        // Template for component content
+        // Template for actual component content
         this.innerHTML = '';
         this.appendChild(style);
         this.innerHTML += `
@@ -28,14 +27,12 @@ class MyRide extends HTMLElement {
                 <img src="${imageUrl}" alt="${make} ${model}">
             </div>
         `;
+
         this.querySelector('.simple-card').addEventListener('click', () => this.bubbleUp());
 
     }
     bubbleUp() {
-        const event = new CustomEvent('highlight', {
-            bubbles: true
-        });
-        this.dispatchEvent(event);
+        console.log('bubbling up...');
     }
 }
 

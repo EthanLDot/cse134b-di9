@@ -48,13 +48,15 @@
 
     <script type="module" src="./my-component.js"></script>
     <script>
+        // JSONBIN: https://api.jsonbin.io/v3/b/6923ce9ad0ea881f40fc1966
         // Alternatively https://my-json-server.typicode.com/EthanLDot/jsonservertest/cars. I personally don't like my json server due because it takes longer to reflect changes to the DB and there's a very low limit on the # of fields per entry.
-        const url = " https://api.jsonbin.io/v3/b/6923ce9ad0ea881f40fc1966";
+        const url = "https://api.jsonbin.io/v3/b/6923ce9ad0ea881f40fc1966";
         let records = {}
         window.addEventListener('DOMContentLoaded', async () => {
             console.log("DOM Content loaded");
 
             try {
+                // Attempt to get data from remote resource (I am use fetch in this case)
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`Response status: ${response.status}`);
@@ -63,8 +65,12 @@
                 const jsonData = await response.json();
                 // if you use my json server make sure the .record part is removed
                 records = jsonData.record;
+
+                // go through each object (note arrays also work but this can become painful to work with when you implement crud operations)
                 Object.keys(records).forEach(key => {
                     const car = records[key];
+
+                    //note this needs the my-component.js script  otherwise it can't map 'my-ride' to the right constructor
                     window.galleryItem = document.createElement("my-ride");
                     console.log(car);
                     window.galleryItem.setAttribute("make", `${car.make}`);
@@ -81,17 +87,22 @@
             }
         });
 
-        document.getElementById('gallery').addEventListener('highlight', (event) => {
+        // For details on event delegation/bubbling read https://medium.com/@rohitkuwar/event-delegation-what-it-is-and-why-its-useful-59e983f87f97
+        document.getElementById('gallery').addEventListener('click', (event) => {
             let target = event.target.closest('my-ride');
             if (!url.includes('https://api.jsonbin.io/')) {
                 alert('STOP, I have not tested this with my-json-server')
                 return;
             }
             if (target) {
+                console.log(`target was ${event.target}`);
+
                 const deetsP = target.querySelector('.deets');
-                console.log(target.querySelector('form'));
+
+                // make sure we don't overwrite the HTML if a form is already present. Note i haven't implemented anything to "cancel" the form.
                 if (target.querySelector('form')) return;
 
+                // Note the functionality below only allows for changing the details of each vehicle. You need to do a bit more than this.
                 const oldText = deetsP.textContent;
                 console.log(oldText);
 
@@ -103,25 +114,29 @@
                 `;
                 const form = target.querySelector('.edit-deets-form');
                 form.addEventListener('submit', async (e) => {
+
+                    // don't redirect to whatever the form would normally redirect to.
                     e.preventDefault();
+
                     const newDeets = form.querySelector('textarea').value;
                     const myKey = `${target.querySelector('.model').innerText}-${target.querySelector('.year').innerText}`.toLowerCase().replaceAll(' ', '-');
                     records[myKey]['deets'] = newDeets;
-                    console.log(records);
                     // If you are doing a local storage apporach for CRUD this would be all you need.
                     // localStorage.setItem("my-rides", JSON.stringify(records));
+
+                    // Yes, in this case you do need to submit your entire records array as the value.
 
                     // If you are doing a remote storage approach the below code will work for JSONBIN.
                     // But note that pasting your API key directly could lead to it being exposed in your repo.
                     // Now client-side code cannot inject env vars for you (typically a backend/build system process) so trying to hide the API key can end up being a complicated process depending on your choice of framework or deployment.
                     // Never mind that anyone can then access the source code on your deployed site and pull in the key directly from there anyway.
                     // Which is to say I can only advise CRUD on remote at this point if you do not care about your JSONBIN API Key.
-                    // await fetch(url, {
-                    //     method: 'PUT', headers: {
-                    //         'Content-Type': 'application/json',
-                    //         'X-Master-Key': FANCY_SCHMANCY_API_KEY,
-                    //     }, body: JSON.stringify(records)
-                    // });
+                    await fetch(url, {
+                        method: 'PUT', headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$HOyThe0pObI/a8Yr6stOFOb/q3lixBs6PAXaeVLZHXrfQlr1zqHVm',
+                        }, body: JSON.stringify(records)
+                    });
                     form.outerHTML = `<p class="deets">${newDeets}</p>`;
                 });
             }
